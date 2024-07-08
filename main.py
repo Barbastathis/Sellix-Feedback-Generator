@@ -5,10 +5,16 @@ from tls_client import Session, response
 import imaplib
 import email
 import concurrent.futures
+import os
+import platform
 from random import choice
-
 from colorama import Fore
 
+def clear():
+    if platform.system() == 'Windows':
+        os.system('cls')
+    elif platform.system() == 'Linux':
+        os.system('clear')
 def clean_mailbox(email):
     try:
         imap = imaplib.IMAP4_SSL('imap.firstmail.ltd', 993)
@@ -30,7 +36,6 @@ class Feedback:
             client_identifier="chrome_113",
             random_tls_extension_order=True
         )
-        self.domains = ['gmail.com']
         self.config = json.load(open("config.json"))
         self.shop: str = self.config.get("shop")
         self.proxy = (choice(open("./proxies.txt", "r").readlines()).strip()
@@ -105,7 +110,7 @@ class Feedback:
             print(e)
 
     def complete(self, url):
-
+        global reviews
         with open('feedback.txt', 'r') as f:
             feedback = f.read().splitlines()
         quote = random.choice(feedback)
@@ -121,6 +126,7 @@ class Feedback:
                 json={"feedback": "positive", "message": quote, "score": score, "uniqid": invoice_id}, headers=headers)
             if r.json()['message'] == 'Feedback Sent Successfully.':
                 print("Sent Out Feedback Successfully")
+                reviews += 1
                 return
             else:
                 print("Failed To Send Out Feedback")
@@ -131,12 +137,14 @@ class Feedback:
 
 
 
-
+reviews = 0
 if __name__ == '__main__':
-    times = int(input("How many times do you want to do it (Every time = 5x) ? "))
-    
-    for _ in range(times):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [executor.submit(Feedback().generate_invoice) for _ in range(threads)]
+    clear()
+    amount = int(input("How many reviews: "))
+    while reviews < amount:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(Feedback().generate_invoice) for _ in range(amount-reviews)]
             for future in concurrent.futures.as_completed(futures):
                 pass
+    
+
