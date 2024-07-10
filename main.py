@@ -9,6 +9,7 @@ import os
 import platform
 from random import choice
 from colorama import Fore
+from datetime import datetime
 
 def clear():
     if platform.system() == 'Windows':
@@ -26,9 +27,9 @@ def clean_mailbox(email):
             imap.store(email_id, '+FLAGS', '\\Deleted')
         imap.expunge()
         imap.logout()
-        print(Fore.GREEN + "[+] Mailbox cleared successfully" + Fore.RESET)
+        print(datetime.now().strftime("%H:%M") , f"| {Fore.GREEN}SUCCESS{Fore.WHITE} | Mailbox cleared successfully {email}"+ Fore.RESET)
     except:
-        print(Fore.RED + "[-] Error while clearing mailbox" + Fore.RESET)
+        print(datetime.now().strftime("%H:%M") , f"| {Fore.RED}ERROR{Fore.WHITE} | Could not clear mailbox {email}"+ Fore.RESET)
 
 class Feedback:
     def __init__(self):
@@ -38,13 +39,13 @@ class Feedback:
         )
         self.config = json.load(open("config.json"))
         self.shop: str = self.config.get("shop")
-        self.proxy = (choice(open("./proxies.txt", "r").readlines()).strip()
-            if len(open("./proxies.txt", "r").readlines()) != 0
-            else None)
-        self.session.proxies = {
-            "http": "http://" + self.proxy,
-            "https": "http://" + self.proxy
-        }
+        # self.proxy = (choice(open("./proxies.txt", "r").readlines()).strip()
+        #     if len(open("./proxies.txt", "r").readlines()) != 0
+        #     else None)
+        # self.session.proxies = {
+        #     "http": "http://" + self.proxy,
+        #     "https": "http://" + self.proxy
+        # }
 
     def obtain_mail(self, mail):
         try:
@@ -65,7 +66,7 @@ class Feedback:
                         for part in email_message.walk():
                             if part.get_content_type() == "text/plain":
                                 url = str(part.get_payload(decode=True).decode('utf-8').split('feedback: ')[-1].split(',')[0])
-                                Feedback().complete(url)
+                                Feedback().complete(url, mail)
                                 return
             
             client.logout()
@@ -76,7 +77,7 @@ class Feedback:
         with open('mails.txt', 'r') as f:
             mails = f.read().splitlines()
         email = random.choice(mails).split(':')[0]
-        print(Fore.YELLOW + f"Email used: {email}" + Fore.RESET)
+        print(datetime.now().strftime("%H:%M") , f"| {Fore.YELLOW}INFO{Fore.WHITE} | Email: {email}" + Fore.RESET)
         clean_mailbox(email)
         global invoices
         try:
@@ -109,7 +110,7 @@ class Feedback:
         except Exception as e:
             print(e)
 
-    def complete(self, url):
+    def complete(self, url, email):
         global reviews
         with open('feedback.txt', 'r') as f:
             feedback = f.read().splitlines()
@@ -120,20 +121,20 @@ class Feedback:
             headers = {"referer": f"url",
                        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
                                      "like Gecko) Chrome/111.0.0.0 Safari/537.36"}
-            score = random.randint(4, 5)
+            score = 5
             r = Session(client_identifier="chrome108").post(
                 f"https://{self.shop}.mysellix.io/api/shop/feedback/reply",
                 json={"feedback": "positive", "message": quote, "score": score, "uniqid": invoice_id}, headers=headers)
             if r.json()['message'] == 'Feedback Sent Successfully.':
-                print("Sent Out Feedback Successfully")
+                print(datetime.now().strftime("%H:%M") , f"| {Fore.GREEN}SUCCESS{Fore.WHITE} | Sent Out Feedback Successfully {email}" + Fore.RESET)
                 reviews += 1
                 return
             else:
-                print("Failed To Send Out Feedback")
+                print(datetime.now().strftime("%H:%M") , f"| {Fore.RED}ERROR{Fore.WHITE} | Failed To Send Out Feedback {email}" + Fore.RESET)
                 return
         except Exception as e:
             print(e)
-            self.complete(url)
+            self.complete(url, email)
 
 
 
@@ -141,8 +142,9 @@ reviews = 0
 if __name__ == '__main__':
     clear()
     amount = int(input("How many reviews: "))
+    clear()
     while reviews < amount:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = [executor.submit(Feedback().generate_invoice) for _ in range(amount-reviews)]
             for future in concurrent.futures.as_completed(futures):
                 pass
