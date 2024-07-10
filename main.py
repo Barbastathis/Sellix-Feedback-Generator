@@ -24,11 +24,11 @@ class Feedback:
             client_identifier="chrome_113",
             random_tls_extension_order=True
         )
-        self.config = json.load(open("config.json"))
+        self.config = json.load(open("config.json", encoding='utf-8'))
         self.shop: str = self.config.get("shop")
-        if self.config.get("proxy") == True and len(open("./proxies.txt", "r").readlines()) != 0:
-            self.proxy = (choice(open("./proxies.txt", "r").readlines()).strip()
-                if len(open("./proxies.txt", "r").readlines()) != 0
+        if self.config.get("proxy") == True and len(open("./proxies.txt", "r", encoding='utf-8').readlines()) != 0:
+            self.proxy = (choice(open("./proxies.txt", "r", encoding='utf-8').readlines()).strip()
+                if len(open("./proxies.txt", "r", encoding='utf-8').readlines()) != 0
                 else None)
             self.session.proxies = {
                 "http": "http://" + self.proxy,
@@ -112,7 +112,7 @@ class Feedback:
 
     def complete(self, url):
         global reviews
-        with open('feedback.txt', 'r') as f:
+        with open('feedback.txt', 'r', encoding='utf-8') as f:
             feedback = f.read().splitlines()
         quote = random.choice(feedback)
 
@@ -136,14 +136,12 @@ class Feedback:
             print(e)
             self.complete(url)
 
-
-
 reviews = 0
 if __name__ == '__main__':
     clear()
     amount = int(input("How many reviews: "))
     clear()
-    with open('mails.txt', 'r') as f:
+    with open('mails.txt', 'r', encoding='utf-8') as f:
         mails = f.read().splitlines()
     while reviews < amount:
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
