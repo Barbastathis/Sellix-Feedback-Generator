@@ -4,7 +4,7 @@ To use you need to first setup the config.json file which need the product_id of
 
 SHOWCASE : https://streamable.com/7wt3rj
 
-You can find more t00ls in my discord server : https://discord.gg/hustlershopp
+You can find more t00ls in my discord server : https://discord.gg/ezboostt
 
 DO NOT DM ME OR TRY TO CONTACT ME NO FURTHER HELP WILL BE PROVIDED
 
